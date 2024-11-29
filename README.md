@@ -1,12 +1,15 @@
 # joint-model-analysis
 
+> [!WARNING]  
+> This project is still under development.
+
 ## todo
 
 - [ ] Introdution
 - [ ] Workflow Steps
 - [X] Inputs
 - [X] Outputs
-- [ ] Components
+- [X] Components
 
 ## Introdution
 
