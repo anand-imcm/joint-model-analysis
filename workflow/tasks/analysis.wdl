@@ -2,7 +2,6 @@ version 1.0
 
 task analysis {
     input {
-        File script
         File serum
         File demog
         String protein
@@ -13,7 +12,7 @@ task analysis {
     Array[File] all_data = flatten([[serum], [demog]])
     Int disk_size_gb = ceil(size(all_data, "GB")) + 5
     command <<<
-        Rscript ~{script} ~{serum} ~{demog} ~{protein}
+        Rscript /scripts/analysis.R ~{serum} ~{demog} ~{protein}
     >>>
     output {
         File csv = protein + "_joint_results.csv"
