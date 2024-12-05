@@ -8,12 +8,12 @@ suppressPackageStartupMessages(library(nlme))
 set.seed(2222)
 
 ########################################################################### PREP
-print(paste0("START loading data ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+print(paste0("START loading inputs ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 args <- commandArgs(trailingOnly = TRUE)
 serum <- read.csv(args[1])
 demog <- read.csv(args[2])
 protein <- args[3]
-print(paste0("END loading data ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+print(paste0("END loading inputs ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 
 print(paste0("START merging data ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 long <- merge(serum,demog,by.x="SampleID",by.y="SERUM_OLINK_MANIFEST",all.x=T) %>%
@@ -35,16 +35,20 @@ print(paste0("END filter ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 
 res <- tryCatch(
   { 
-    survFit <- survival::coxph(Surv(Time, death) ~ 1, data = surv, x = TRUE)
     print(paste0("START survival::coxph ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    survFit <- survival::coxph(Surv(Time, death) ~ 1, data = surv, x = TRUE)
+    print(paste0("END survival::coxph ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    print(paste0("START nlme::lme ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
     lme_protein <- nlme::lme(as.formula(paste(protein, "~ DELTA")), 
                              random = ~ DELTA | IMCM_ID, 
                              data = long,
                              control = lmeControl(opt = 'optim'))
-    print(paste0("START nlme::lme ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    print(paste0("END nlme::lme ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    print(paste0("START JMbayes2::jm ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
     joint_protein <- JMbayes2::jm(survFit, lme_protein, time_var = "DELTA",
                                   id_var="IMCM_ID", n_iter = 10000L, n_burnin = 1000L)
-    print(paste0("START JMbayes2::jm ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    print(paste0("END JMbayes2::jm ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    print(paste0("START joint_protein_results ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
     joint_protein_results <- data.frame(row.names = NULL,
                                         Protein = protein,
                                         marginal_DIC = joint_protein$fit_stats$marginal$DIC,
@@ -54,11 +58,13 @@ res <- tryCatch(
                                         Alphas_StDev = joint_protein$statistics$SD$alphas,
                                         Alphas_P = joint_protein$statistics$P$alphas,
                                         Rhat = joint_protein$statistics$Rhat$alphas[,"Point est."])
-    print(paste0("START joining_data_frme ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
-    write.csv(joint_protein_results,paste0(protein,"_joint_results.csv"),row.names=FALSE)
+    print(paste0("END joint_protein_results ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
     print(paste0("START write.csv ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
-    saveRDS(joint_protein,paste0(protein,"_joint_results.RDS"),compress = "gzip")
+    write.csv(joint_protein_results,paste0(protein,"_joint_results.csv"),row.names=FALSE)
+    print(paste0("END write.csv ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
     print(paste0("START saveRDS ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+    saveRDS(joint_protein,paste0(protein,"_joint_results.RDS"),compress = "gzip")
+    print(paste0("END saveRDS ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
   },
   error=function(err) {
     print(paste0("ERROR START ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
