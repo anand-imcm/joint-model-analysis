@@ -1,16 +1,30 @@
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-# WORKFLOW FOR SERUM JOINT MODELLING
 print(paste0("START script ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(survival))
-suppressPackageStartupMessages(library(JMbayes2))
-suppressPackageStartupMessages(library(nlme))
+required_packages <- c("dplyr", "JMbayes2", "survival", "nlme")
+missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if (length(missing_packages)) {
+  install.packages(missing_packages, dependencies = TRUE)
+}
+suppressPackageStartupMessages(lapply(required_packages, require, character.only = TRUE))
 set.seed(2222)
 ########################################################################### PREP
 print(paste0("START loading inputs ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 args <- commandArgs(trailingOnly = TRUE)
-serum <- read.csv(args[1])
-demog <- read.csv(args[2])
-protein <- args[3]
+if (length(args) < 3) {
+  if (interactive()) {
+    message("Using default test file paths.")
+    serum <- read.csv("test/serum_test.csv")
+    demog <- read.csv("test/demographics_test.csv")
+    protein <- "A"
+  } else {
+    stop("Insufficient arguments supplied. Please provide: serum(csv file), demographics(csv file), and protein name")
+  }
+} else {
+  message("Using commandline arguments.")
+  serum <- read.csv(args[1])
+  demog <- read.csv(args[2])
+  protein <- args[3]
+}
 print(paste0("END loading inputs ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 print(paste0("START merging data ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 long <- merge(serum,demog,by.x="SampleID",by.y="SERUM_OLINK_MANIFEST",all.x=T) %>% 
