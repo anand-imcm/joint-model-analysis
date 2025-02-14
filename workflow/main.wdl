@@ -10,7 +10,7 @@ workflow main {
         Int memory_gb = 24
         Int cpu = 16
     }
-    String docker = "ghcr.io/anand-imcm/joint-model-analysis:1.0.0"
+    String docker = "ghcr.io/anand-imcm/joint-model-analysis:0.0.1"
     call process.analysis{
         input:
             serum=serum_csv,
