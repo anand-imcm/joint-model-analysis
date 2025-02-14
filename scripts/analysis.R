@@ -13,12 +13,12 @@ demog <- read.csv(args[2])
 protein <- args[3]
 print(paste0("END loading inputs ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
 print(paste0("START merging data ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
-long <- merge(serum,demog,by.x="SampleID",by.y="SERUM_OLINK_MANIFEST",all.x=T) %>%
-  filter(GROUP=="AMYOTROPHIC LATERAL SCLEROSIS") %>%
+long <- merge(serum,demog,by.x="SampleID",by.y="SERUM_OLINK_MANIFEST",all.x=T) %>% 
+  filter(GROUP=="Group_2") %>% 
   group_by(IMCM_ID) %>%
   arrange(IMCM_ID,AGE_AT_SAMPLING) %>%
-  mutate(Time=AGE_AT_DEAD_OR_CENSORED-first(AGE_AT_SAMPLING)) %>%
-  mutate(death=case_when(DEAD_OR_CENSORED=="DEAD"~1,DEAD_OR_CENSORED=="CENSORED"~0,TRUE~NA)) %>%
+  mutate(Time=AGE_AT_A_OR_B-first(AGE_AT_SAMPLING)) %>%
+  mutate(death=case_when(A_OR_B=="A"~1,A_OR_B=="B"~0,TRUE~NA)) %>%
   mutate(DELTA=AGE_AT_SAMPLING-first(AGE_AT_SAMPLING)) %>%
   select(c(1,3:5418,IMCM_ID,AGE_AT_SAMPLING,Time,death,DELTA))
 print(paste0("END merging data ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
