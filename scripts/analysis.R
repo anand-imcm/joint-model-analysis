@@ -1,5 +1,6 @@
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-# WORKFLOW FOR SERUM JOINT MODELLING
 print(paste0("START script ", format(Sys.time(), "%H:%M:%S"), " on ", Sys.Date()))
+options(repos = c(CRAN = "https://cran.r-project.org"))
 required_packages <- c("dplyr", "JMbayes2", "survival", "nlme")
 missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 if (length(missing_packages)) {
