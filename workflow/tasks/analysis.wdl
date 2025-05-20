@@ -8,9 +8,9 @@ task analysis {
         String docker
         Int memory
         Int cpu
+        Int disk_size = 500
+        String disk_type = "SSD"
     }
-    Array[File] all_data = flatten([[serum], [demog]])
-    Int disk_size_gb = ceil(size(all_data, "GB")) + 5
     command <<<
         Rscript /scripts/analysis.R ~{serum} ~{demog} ~{protein}
     >>>
@@ -22,6 +22,6 @@ task analysis {
         docker: "~{docker}"
         cpu: "~{cpu}"
         memory: "~{memory}GB"
-        disks: "local-disk ~{disk_size_gb} HDD"
+        disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 }
